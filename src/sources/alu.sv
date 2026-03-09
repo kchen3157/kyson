@@ -5,7 +5,7 @@
 
 module alu
     (
-        input   logic [3:0] i_opcode,
+        input   logic [3:0] i_alu_op,
         input   logic [31:0] i_a,
         input   logic [31:0] i_b,
 
@@ -15,7 +15,7 @@ module alu
 
     always_comb
     begin
-        case (i_opcode)
+        case (i_alu_op)
             `ALU_OP_ADD:
                 o_result = i_a + i_b;
             `ALU_OP_AND:
