@@ -13,6 +13,7 @@
 `define     ALU_OP_SRA      4'b0111
 `define     ALU_OP_OR       4'b1000
 `define     ALU_OP_XOR      4'b1001
+`define     ALU_OP_SUB      4'b1010
 
 
 `endif // __ENUMS_SV__

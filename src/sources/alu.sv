@@ -25,15 +25,17 @@ module alu
             `ALU_OP_SLTU:
                 o_result = {31'h0, i_a < i_b};
             `ALU_OP_SLL:
-                o_result = i_a << i_b;
+                o_result = i_a << i_b[4:0];
             `ALU_OP_SRL:
-                o_result = i_a >> i_b;
+                o_result = i_a >> i_b[4:0];
             `ALU_OP_SRA:
-                o_result = i_a >>> i_b;
+                o_result = $signed(i_a) >>> i_b[4:0];
             `ALU_OP_OR:
                 o_result = i_a | i_b;
             `ALU_OP_XOR:
                 o_result = i_a ^ i_b;
+            `ALU_OP_SUB:
+                o_result = i_a - i_b;
             default:
                 o_result = 0;
         endcase
