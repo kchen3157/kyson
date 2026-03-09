@@ -20,8 +20,6 @@ module alu
                 o_result = i_a + i_b;
             `ALU_OP_AND:
                 o_result = i_a & i_b;
-            `ALU_OP_SEQ:
-                o_result = {31'h0, i_a == i_b};
             `ALU_OP_SLT:
                 o_result = {31'h0, $signed(i_a) < $signed(i_b)};
             `ALU_OP_SLTU:
