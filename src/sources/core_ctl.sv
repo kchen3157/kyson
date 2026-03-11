@@ -6,15 +6,22 @@ module core_ctl
     (
         input   logic [31:0] i_inst,
 
+        // Consumed @ EX
+        output  logic [1:0] o_aluctl_op, // alu operation (ALU_CTL)
+        output  logic [1:0] o_alu_src1, // Follows ALU_SRC1_XXX
+        output  logic [1:0] o_alu_src2, // Follows ALU_SRC2_XXX
+
+        output  logic [1:0] o_jump, // type of jump
         output  logic o_branch, // this is a branch type instruction
+
+        // Consumed @ MEM
         output  logic o_mem_read_en, // whether to read data memory
         output  logic o_mem_write_en, // whether to write to data memory
 
+        // Consumed @ WB
         output  logic o_reg_write_en, // whether to write to register
-        output  logic [2:0] o_reg_write_src, // what to write to rd (REG_RD_WRITE_XXX)
-
-        output  logic [1:0] o_aluctl_op, // alu operation (ALU_CTL)
-        output  logic [1:0] o_alu_src // switch between immediate (1) and rs2 (0) for alu input 2
+        output  logic [2:0] o_reg_write_src // what to write to rd (REG_RD_WRITE_XXX)
+        
     );
 
     logic [6:0] w_opcode;
@@ -27,14 +34,16 @@ module core_ctl
         o_reg_write_src = `REG_RD_WRITE_ALU;
         o_aluctl_op = `ALU_CTL_LS;
         o_mem_write_en = 1'b0;
-        o_alu_src = `ALU_SRC2_RS2;
+        o_alu_src1 = `ALU_SRC1_RS1;
+        o_alu_src2 = `ALU_SRC2_RS2;
         o_reg_write_en = 1'b0;
+        o_jump = `JUMP_NONE;
         case (w_opcode)
             `OPCODE_LOAD:
             begin
                 o_mem_read_en = 1'b1;
                 o_reg_write_src = `REG_RD_WRITE_MEM;
-                o_alu_src = `ALU_SRC2_IMM;
+                o_alu_src2 = `ALU_SRC2_IMM;
                 o_reg_write_en = 1'b1;
             end
             `OPCODE_MISCMEM:
@@ -44,18 +53,19 @@ module core_ctl
             `OPCODE_OP_IMM:
             begin
                 o_aluctl_op = `ALU_CTL_OP_IMM;
-                o_alu_src = `ALU_SRC2_IMM;
+                o_alu_src2 = `ALU_SRC2_IMM;
                 o_reg_write_en = 1'b1;
             end
             `OPCODE_AUIPC: 
             begin
                 o_reg_write_en = 1'b1;
                 o_reg_write_src = `REG_RD_WRITE_PC_IMM;
+                o_alu_src1 = `ALU_SRC1_PC;
             end
             `OPCODE_STORE: 
             begin
                 o_mem_write_en = 1'b1;
-                o_alu_src = `ALU_SRC2_IMM;
+                o_alu_src2 = `ALU_SRC2_IMM;
             end 
             `OPCODE_OP:  
             begin
@@ -76,12 +86,14 @@ module core_ctl
             begin
                 o_reg_write_en = 1'b1;
                 o_reg_write_src = `REG_RD_WRITE_PC_P4;
-                o_alu_src = `ALU_SRC2_IMM;
+                o_alu_src2 = `ALU_SRC2_IMM;
+                o_jump = `JUMP_JALR;
             end  
             `OPCODE_JAL:
             begin
                 o_reg_write_en = 1'b1;
                 o_reg_write_src = `REG_RD_WRITE_PC_P4;
+                o_jump = `JUMP_JAL;
             end  
             `OPCODE_SYSTEM:
             begin
@@ -94,7 +106,7 @@ module core_ctl
                 o_reg_write_src = 1'bX;
                 o_aluctl_op = 2'hX;
                 o_mem_write_en = 1'bX;
-                o_alu_src = 2'bX;
+                o_alu_src2 = 2'bX;
                 o_reg_write_en = 1'bX;
             end
         endcase

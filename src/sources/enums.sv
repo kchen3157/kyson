@@ -22,9 +22,10 @@
 `define     ALU_CTL_OP_IMM      2'b11
 
 // ALU 1st Operand Source
-`define     ALU_SRC1_RS1        2'b00   // Set rs1 as ALU's second operand
+`define     ALU_SRC1_RS1        2'b00   // Set rs1 as ALU's first operand
 `define     ALU_SRC1_FWEX_RS1   2'b01   // Forward result from the execute stage
 `define     ALU_SRC1_FWMEM_RS1  2'b10   // Forward result from the memory stage
+`define     ALU_SRC1_PC         2'b11   // Set PC as ALU's first operand
 
 // ALU 2nd Operand Source
 `define     ALU_SRC2_RS2        2'b00   // Set rs2 as ALU's second operand
@@ -38,6 +39,11 @@
 `define     REG_RD_WRITE_UI     3'b010 // Write upper immediate back to rd
 `define     REG_RD_WRITE_PC_P4  3'b011 // Write PC + 4 back to rd
 `define     REG_RD_WRITE_PC_IMM 3'b100 // Write PC + UI back to rd
+
+// Jump types
+`define     JUMP_NONE       2'b00
+`define     JUMP_JAL        2'b01
+`define     JUMP_JALR       2'b10
 
 // Instruction OPCodes
 `define     OPCODE_LOAD     7'b0000011 // lb/h/w/bu/hu
