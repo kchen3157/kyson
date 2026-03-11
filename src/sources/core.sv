@@ -2,7 +2,7 @@
 
 `include "enums.sv"
 
-module sc_core
+module core
     (
         input   logic i_clk, i_rst,
 
@@ -154,7 +154,7 @@ module sc_core
     assign o_dmem_read_en    = w_mem_read_en;
     assign o_dmem_write_en    = w_mem_write_en;
 
-    sc_core_ctl u_sc_core_ctl (
+    core_ctl u_core_ctl (
         .i_inst          (i_imem_data),
         .o_branch        (w_branch),
         .o_mem_read_en   (w_mem_read_en),

@@ -2,7 +2,7 @@
 
 `include "enums.sv"
 
-module sc_core_ctl
+module core_ctl
     (
         input   logic [31:0] i_inst,
 
