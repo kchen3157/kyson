@@ -21,6 +21,17 @@
 `define     ALU_CTL_OP          2'b10
 `define     ALU_CTL_OP_IMM      2'b11
 
+// ALU 2nd Operand Source
+`define     ALU_SRC_IMM     1'b1    // Set immediate as ALU's second operand
+`define     ALU_SRC_RS2     1'b0    // Set rs2 as ALU's second operand
+
+// Register rd Write Source
+`define     REG_RD_WRITE_ALU    3'b000 // Write ALU result back to rd
+`define     REG_RD_WRITE_MEM    3'b001 // Write memory read result back to rd
+`define     REG_RD_WRITE_UI     3'b010 // Write upper immediate back to rd
+`define     REG_RD_WRITE_PC_P4  3'b011 // Write PC + 4 back to rd
+`define     REG_RD_WRITE_PC_IMM 3'b100 // Write PC + UI back to rd
+
 // Instruction OPCodes
 `define     OPCODE_LOAD     7'b0000011 // lb/h/w/bu/hu
 `define     OPCODE_MISCMEM  7'b0001111 // fence
