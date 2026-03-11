@@ -1,6 +1,6 @@
 `include "enums.sv"
 
-module core_data_path
+module core
     (
         input   logic i_clk, i_rst,
 
@@ -134,7 +134,7 @@ module core_data_path
             `REG_RD_WRITE_ALU:
                 w_rd_data = w_alu_result;
             `REG_RD_WRITE_MEM:
-                w_rd_data = i_dmem_rdata;
+                w_rd_data = i_dmem_read_data;
             `REG_RD_WRITE_UI:
                 w_rd_data = w_imm;
             `REG_RD_WRITE_PC_P4:
@@ -148,11 +148,11 @@ module core_data_path
 
     // Data memory outputs
     assign o_dmem_addr   = w_alu_result;
-    assign o_dmem_wdata  = w_rs2_data;
-    assign o_dmem_ren    = w_mem_read_en;
-    assign o_dmem_wen    = w_mem_write_en;
+    assign o_dmem_write_data  = w_rs2_data;
+    assign o_dmem_read_en    = w_mem_read_en;
+    assign o_dmem_write_en    = w_mem_write_en;
 
-    core u_core_ctl (
+    core_ctl u_core_ctl (
         .i_inst          (i_imem_data),
         .o_branch        (w_branch),
         .o_mem_read_en   (w_mem_read_en),
