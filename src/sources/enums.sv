@@ -116,6 +116,14 @@
 `define     FUNCT7_SRA      7'b0100000
 `define     FUNCT7_EBREAK   12'h001
 
+// Forwarding definitions
+`define     RS1_FORWARD_NONE    2'b00
+`define     RS1_FORWARD_EX      2'b01
+`define     RS1_FORWARD_MEM     2'b10
+
+`define     RS2_FORWARD_NONE    2'b00
+`define     RS2_FORWARD_EX      2'b01
+`define     RS2_FORWARD_MEM     2'b10
 
 
 `endif // __ENUMS_SV__
