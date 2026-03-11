@@ -10,11 +10,11 @@ module sc_core_ctl
         output  logic o_mem_read_en, // whether to read data memory
         output  logic o_mem_write_en, // whether to write to data memory
 
-        output  logic o_reg_write_en // whether to write to register
+        output  logic o_reg_write_en, // whether to write to register
         output  logic [2:0] o_reg_write_src, // what to write to rd (REG_RD_WRITE_XXX)
 
         output  logic [1:0] o_aluctl_op, // alu operation (ALU_CTL)
-        output  logic o_alu_src, // switch between immediate (1) and rs2 (0) for alu input 2
+        output  logic o_alu_src // switch between immediate (1) and rs2 (0) for alu input 2
         
     );
 
