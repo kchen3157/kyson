@@ -21,9 +21,16 @@
 `define     ALU_CTL_OP          2'b10
 `define     ALU_CTL_OP_IMM      2'b11
 
+// ALU 1st Operand Source
+`define     ALU_SRC1_RS1        2'b00   // Set rs1 as ALU's second operand
+`define     ALU_SRC1_FWEX_RS1   2'b01   // Forward result from the execute stage
+`define     ALU_SRC1_FWMEM_RS1  2'b10   // Forward result from the memory stage
+
 // ALU 2nd Operand Source
-`define     ALU_SRC_IMM     1'b1    // Set immediate as ALU's second operand
-`define     ALU_SRC_RS2     1'b0    // Set rs2 as ALU's second operand
+`define     ALU_SRC2_RS2        2'b00   // Set rs2 as ALU's second operand
+`define     ALU_SRC2_IMM        2'b01   // Set immediate as ALU's second operand
+`define     ALU_SRC2_FWEX_RS2   2'b10   // Forward result from the execute stage
+`define     ALU_SRC2_FWMEM_RS2  2'b11   // Forward result from the memory stage
 
 // Register rd Write Source
 `define     REG_RD_WRITE_ALU    3'b000 // Write ALU result back to rd

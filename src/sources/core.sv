@@ -35,7 +35,7 @@ module sc_core
     logic [2:0] w_reg_write_src;
     logic [1:0] w_aluctl_op;
     logic w_mem_write_en;
-    logic w_alu_src;
+    logic [1:0] w_alu_src;
     logic w_reg_write_en;
 
     // ALU module signals
@@ -123,9 +123,9 @@ module sc_core
     // ALU B input logic
     always_comb
     begin
-        if (w_alu_src == `ALU_SRC_IMM)
+        if (w_alu_src == `ALU_SRC2_IMM)
             w_alu_b = w_imm;
-        else // ALU_SRC_RS2
+        else // ALU_SRC2_RS2
             w_alu_b = w_rs2_data;
     end
 
