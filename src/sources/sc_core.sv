@@ -24,23 +24,24 @@ module sc_core
     logic [31:0] w_pc_imm;
 
     // Split the instruction
-    logic [6:0] w_opcode;
     logic [4:0] w_rs1, w_rs2, w_rd;
     logic [2:0] w_funct3;
     logic [6:0] w_funct7;
 
     // Core ctl module signals
     logic w_branch;
+    logic [1:0] w_jump;
     logic w_mem_read_en;
     logic [2:0] w_reg_write_src;
     logic [1:0] w_aluctl_op;
     logic w_mem_write_en;
-    logic [1:0] w_alu_src;
+    logic w_alu_src1;
+    logic w_alu_src2;
     logic w_reg_write_en;
 
     // ALU module signals
     logic [3:0] w_alu_op;
-    logic [31:0] w_alu_b;
+    logic [31:0] w_alu_a, w_alu_b;
     logic [31:0] w_alu_result;
     logic w_alu_result_eqz;
 
@@ -52,46 +53,36 @@ module sc_core
     logic [31:0] w_imm;
 
     // Branch Logic
-    logic w_branch_cond_base;
     logic w_take_branch;
 
     // Instruction field extraction
-    assign w_opcode = i_imem_data[6:0];
     assign w_rd = i_imem_data[11:7];
     assign w_funct3 = i_imem_data[14:12];
     assign w_rs1 = i_imem_data[19:15];
     assign w_rs2 = i_imem_data[24:20];
     assign w_funct7 = i_imem_data[31:25];
 
-    // PC register instantiation
+    // PC register
     always_ff @(posedge i_clk, posedge i_rst)
     begin
         if (i_rst)
-        begin
             r_pc <= 32'h0;
-        end
         else
-        begin
             r_pc <= w_pc_next;
-        end
     end
     assign o_imem_addr = r_pc;
+    assign w_pc_p4  = r_pc + 32'h4;
+    assign w_pc_imm = r_pc + w_imm;
 
     // Next PC logic
     always_comb
     begin
-        if (w_opcode == `OPCODE_JALR)
-        begin
+        if (w_jump == `JUMP_JALR)
             w_pc_next = {w_alu_result[31:1], 1'b0};
-        end
-        else if (w_take_branch || (w_opcode == `OPCODE_JAL))
-        begin
-            w_pc_next = r_pc + w_imm;
-        end
+        else if (w_take_branch || (w_jump == `JUMP_JAL))
+            w_pc_next = w_pc_imm;
         else
-        begin
-            w_pc_next = r_pc + 32'h4;
-        end
+            w_pc_next = w_pc_p4;
     end
 
     // Branch taken logic
@@ -120,14 +111,9 @@ module sc_core
         end
     end
 
-    // ALU B input logic
-    always_comb
-    begin
-        if (w_alu_src == `ALU_SRC2_IMM)
-            w_alu_b = w_imm;
-        else // ALU_SRC2_RS2
-            w_alu_b = w_rs2_data;
-    end
+    // ALU input muxes
+    assign w_alu_a = (w_alu_src1 == `ALU_SRC1_PC) ? r_pc : w_rs1_data;
+    assign w_alu_b = (w_alu_src2 == `ALU_SRC2_IMM) ? w_imm : w_rs2_data;
 
     // rd write data mux
     always_comb
@@ -143,26 +129,28 @@ module sc_core
                 w_rd_data = w_pc_p4;
             `REG_RD_WRITE_PC_IMM:
                 w_rd_data = w_pc_imm;
-            default: 
+            default:
                 w_rd_data = 32'hX;
         endcase
     end
 
     // Data memory outputs
-    assign o_dmem_addr   = w_alu_result;
+    assign o_dmem_addr        = w_alu_result;
     assign o_dmem_write_data  = w_rs2_data;
-    assign o_dmem_read_en    = w_mem_read_en;
+    assign o_dmem_read_en     = w_mem_read_en;
     assign o_dmem_write_en    = w_mem_write_en;
 
     sc_core_ctl u_sc_core_ctl (
         .i_inst          (i_imem_data),
         .o_branch        (w_branch),
+        .o_jump          (w_jump),
         .o_mem_read_en   (w_mem_read_en),
+        .o_mem_write_en  (w_mem_write_en),
+        .o_reg_write_en  (w_reg_write_en),
         .o_reg_write_src (w_reg_write_src),
         .o_aluctl_op     (w_aluctl_op),
-        .o_mem_write_en  (w_mem_write_en),
-        .o_alu_src       (w_alu_src),
-        .o_reg_write_en  (w_reg_write_en)
+        .o_alu_src1      (w_alu_src1),
+        .o_alu_src2      (w_alu_src2)
     );
 
     imm_gen u_imm_gen (
@@ -191,7 +179,7 @@ module sc_core
 
     alu u_alu (
         .i_alu_op     (w_alu_op),
-        .i_a          (w_rs1_data),
+        .i_a          (w_alu_a),
         .i_b          (w_alu_b),
         .o_result     (w_alu_result),
         .o_result_eqz (w_alu_result_eqz)

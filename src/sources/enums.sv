@@ -21,17 +21,18 @@
 `define     ALU_CTL_OP          2'b10
 `define     ALU_CTL_OP_IMM      2'b11
 
-// ALU 1st Operand Source
-`define     ALU_SRC1_RS1        2'b00   // Set rs1 as ALU's first operand
-`define     ALU_SRC1_FWEX_RS1   2'b01   // Forward result from the execute stage
-`define     ALU_SRC1_FWMEM_RS1  2'b10   // Forward result from the memory stage
-`define     ALU_SRC1_PC         2'b11   // Set PC as ALU's first operand
+// ALU 1st Operand Source (decode-stage; forwarding is separate)
+`define     ALU_SRC1_RS1    1'b0    // rs1 as ALU's first operand
+`define     ALU_SRC1_PC     1'b1    // PC as ALU's first operand (AUIPC)
 
-// ALU 2nd Operand Source
-`define     ALU_SRC2_RS2        2'b00   // Set rs2 as ALU's second operand
-`define     ALU_SRC2_IMM        2'b01   // Set immediate as ALU's second operand
-`define     ALU_SRC2_FWEX_RS2   2'b10   // Forward result from the execute stage
-`define     ALU_SRC2_FWMEM_RS2  2'b11   // Forward result from the memory stage
+// ALU 2nd Operand Source (decode-stage; forwarding is separate)
+`define     ALU_SRC2_RS2    1'b0    // rs2 as ALU's second operand
+`define     ALU_SRC2_IMM    1'b1    // immediate as ALU's second operand
+
+// Forwarding Source (used by hazard/forwarding unit at EX stage)
+`define     FW_NONE         2'b00   // no forwarding, use register file value
+`define     FW_EX           2'b01   // forward from EX/MEM pipeline register
+`define     FW_MEM          2'b10   // forward from MEM/WB pipeline register
 
 // Register rd Write Source
 `define     REG_RD_WRITE_ALU    3'b000 // Write ALU result back to rd

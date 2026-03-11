@@ -7,9 +7,9 @@ module core_ctl
         input   logic [31:0] i_inst,
 
         // Consumed @ EX
-        output  logic [1:0] o_aluctl_op, // alu operation (ALU_CTL)
-        output  logic [1:0] o_alu_src1, // Follows ALU_SRC1_XXX
-        output  logic [1:0] o_alu_src2, // Follows ALU_SRC2_XXX
+        output  logic [1:0] o_aluctl_op, // alu operation (ALU_CTL_XXX)
+        output  logic o_alu_src1, // ALU input A: rs1 (0) or PC (1)
+        output  logic o_alu_src2, // ALU input B: rs2 (0) or immediate (1)
 
         output  logic [1:0] o_jump, // type of jump
         output  logic o_branch, // this is a branch type instruction
@@ -102,11 +102,13 @@ module core_ctl
             default:
             begin
                 o_branch = 1'bX;
+                o_jump = 2'bX;
                 o_mem_read_en = 1'bX;
-                o_reg_write_src = 1'bX;
-                o_aluctl_op = 2'hX;
+                o_reg_write_src = 3'bX;
+                o_aluctl_op = 2'bX;
                 o_mem_write_en = 1'bX;
-                o_alu_src2 = 2'bX;
+                o_alu_src1 = 1'bX;
+                o_alu_src2 = 1'bX;
                 o_reg_write_en = 1'bX;
             end
         endcase
