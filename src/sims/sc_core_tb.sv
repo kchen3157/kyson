@@ -1,6 +1,6 @@
 `timescale 1 ns/10 ps
 
-module core_tb;
+module sc_core_tb;
 
     // ********** Parameters **********
     localparam CLK_PERIOD = 10; // 10 ns -> 100 MHz
@@ -24,7 +24,7 @@ module core_tb;
     end
 
     // ********** DUT Instantiation **********
-    core dut_core
+    sc_core dut_sc_core
         (.*);
 
     

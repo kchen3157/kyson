@@ -2,7 +2,7 @@
 #! THE TB MUST BE NAMED $(MODULE_UNDER_TEST)_tb.sv
 
 ######## SET MODULE NAME HERE ########
-set MODULE_UNDER_TEST "core"
+set MODULE_UNDER_TEST "sc_core"
 
 ######## SET SIM TIME HERE ########
 set SIM_TIME "10us"
