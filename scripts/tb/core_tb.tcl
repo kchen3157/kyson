@@ -2,7 +2,7 @@
 #! THE TB MUST BE NAMED $(MODULE_UNDER_TEST)_tb.sv
 
 ######## SET MODULE NAME HERE ########
-set MODULE_UNDER_TEST "alu"
+set MODULE_UNDER_TEST "core"
 
 ######## SET SIM TIME HERE ########
 set SIM_TIME "10us"
@@ -21,7 +21,8 @@ set_property part xc7a200tsbg484-1 [current_project]
 
 ######## ADD SOURCE FILES HERE ########
 add_files -fileset sim_1 "src/sims/${MODULE_UNDER_TEST}_tb.sv"
-add_files -fileset sources_1 "src/sources/${MODULE_UNDER_TEST}.sv"
+add_files -fileset sources_1 "src/sources/"
+# add_files -fileset sources_1 "src/sources/${MODULE_UNDER_TEST}.sv"
 # add_files -fileset sources_1 "src/sources/DEPENDENCIES.sv"
 
 # Set top

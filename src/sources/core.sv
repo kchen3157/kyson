@@ -1,3 +1,5 @@
+`timescale 1 ns/10 ps
+
 `include "enums.sv"
 
 module core
@@ -188,7 +190,7 @@ module core
     );
 
     alu u_alu (
-        .i_opcode     (w_alu_op),
+        .i_alu_op     (w_alu_op),
         .i_a          (w_rs1_data),
         .i_b          (w_alu_b),
         .o_result     (w_alu_result),

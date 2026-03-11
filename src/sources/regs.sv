@@ -1,4 +1,4 @@
-
+`timescale 1 ns/10 ps
 
 module regs
     (
@@ -17,11 +17,7 @@ module regs
     
     always_ff @(posedge i_clk)
     begin
-        if (i_rst)
-        begin
-            r_regs <= 0;
-        end
-        else if (i_rd_write_en && (i_addr_rd != 5'h00))
+        if (i_rd_write_en && (i_addr_rd != 5'h00))
         begin
             r_regs[i_addr_rd] <= i_data_rd;
         end
