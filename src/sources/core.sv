@@ -20,8 +20,6 @@ module core
 
     // PC register signals
     logic [31:0] r_pc, w_pc_next;
-    logic [31:0] w_pc_p4;
-    logic [31:0] w_pc_imm;
 
     // Split the instruction
     logic [4:0] w_rs1, w_rs2, w_rd;
@@ -67,6 +65,7 @@ module core
     logic [4:0] r_rd_ID, w_rd_ID_next;
     logic [31:0] r_imm_ID, w_imm_ID_next;
     logic [2:0] r_funct3_ID, w_funct3_ID_next;
+    logic [6:0] r_funct7_ID, w_funct7_ID_next;
 
     logic [1:0] r_aluctl_op_ID, w_aluctl_op_ID_next;
     logic r_alu_src1_ID, w_alu_src1_ID_next;
@@ -82,6 +81,8 @@ module core
     // Signals from EX stage
     logic [31:0] r_alu_result_EX, w_alu_result_EX_next;
     logic [31:0] r_rs2_data_EX, w_rs2_data_EX_next;
+    logic [31:0] r_imm_EX, w_imm_EX_next;
+    logic [31:0] r_pc_p4_EX, w_pc_p4_EX_next;
     logic [4:0] r_rd_EX, w_rd_EX_next;
 
     logic [1:0] r_jump_EX, w_jump_EX_next;
@@ -94,6 +95,8 @@ module core
     // Signals from MEM stage
     logic [31:0] r_alu_result_MEM, w_alu_result_MEM_next;
     logic [31:0] r_mem_read_data, w_mem_read_data_next;
+    logic [31:0] r_imm_MEM, w_imm_MEM_next;
+    logic [31:0] r_pc_p4_MEM, w_pc_p4_MEM_next;
     logic [4:0] r_rd_MEM, w_rd_MEM_next;
 
     logic r_reg_write_en_MEM, w_reg_write_en_MEM_next;
@@ -111,6 +114,7 @@ module core
     assign w_pc_ID_next = r_pc_IF;
     assign w_rd_ID_next = r_inst_IF[11:7];
     assign w_funct3_ID_next = r_inst_IF[14:12];
+    assign w_funct7_ID_next = r_inst_IF[31:25];
     assign w_imm_ID_next = w_imm;
 
     assign w_aluctl_op_ID_next = w_aluctl_op;
@@ -128,6 +132,8 @@ module core
     assign w_alu_result_EX_next = w_alu_result;
 
     assign w_rs2_data_EX_next = r_rs2_data_ID;
+    assign w_imm_EX_next = r_imm_ID;
+    assign w_pc_p4_EX_next = r_pc_ID + 32'h4;
     assign w_rd_EX_next = r_rd_ID;
 
     assign w_jump_EX_next = r_jump_ID;
@@ -141,6 +147,8 @@ module core
     assign w_mem_read_data_next = i_dmem_read_data;
 
     assign w_alu_result_MEM_next = r_alu_result_EX;
+    assign w_imm_MEM_next = r_imm_EX;
+    assign w_pc_p4_MEM_next = r_pc_p4_EX;
     assign w_rd_MEM_next = r_rd_EX;
 
     assign w_reg_write_en_MEM_next  = r_reg_write_en_EX;
@@ -172,6 +180,7 @@ module core
             r_rs2_data_ID       <= 32'h0;
             r_rd_ID             <= 5'h0;
             r_funct3_ID         <= 3'h0;
+            r_funct7_ID         <= 7'h0;
             r_imm_ID            <= 32'h0;
             r_aluctl_op_ID      <= `ALU_CTL_LS;
             r_alu_src1_ID       <= `ALU_SRC1_RS1;
@@ -190,6 +199,7 @@ module core
             r_rs2_data_ID       <= w_rs2_data_ID_next;
             r_rd_ID             <= w_rd_ID_next;
             r_funct3_ID         <= w_funct3_ID_next;
+            r_funct7_ID         <= w_funct7_ID_next;
             r_imm_ID            <= w_imm_ID_next;
             r_aluctl_op_ID      <= w_aluctl_op_ID_next;
             r_alu_src1_ID       <= w_alu_src1_ID_next;
@@ -210,6 +220,8 @@ module core
         begin
             r_alu_result_EX     <= 32'h0;
             r_rs2_data_EX       <= 32'h0;
+            r_imm_EX            <= 32'h0;
+            r_pc_p4_EX          <= 32'h0;
             r_rd_EX             <= 5'h0;
             r_jump_EX           <= `JUMP_NONE;
             r_branch_EX         <= 1'b0;
@@ -222,6 +234,8 @@ module core
         begin
             r_alu_result_EX     <= w_alu_result_EX_next;
             r_rs2_data_EX       <= w_rs2_data_EX_next;
+            r_imm_EX            <= w_imm_EX_next;
+            r_pc_p4_EX          <= w_pc_p4_EX_next;
             r_rd_EX             <= w_rd_EX_next;
             r_jump_EX           <= w_jump_EX_next;
             r_branch_EX         <= w_branch_EX_next;
@@ -239,6 +253,8 @@ module core
         begin
             r_alu_result_MEM    <= 32'h0;
             r_mem_read_data     <= 32'h0;
+            r_imm_MEM           <= 32'h0;
+            r_pc_p4_MEM         <= 32'h0;
             r_rd_MEM            <= 5'h0;
             r_reg_write_en_MEM  <= 1'b0;
             r_reg_write_src_MEM <= `REG_RD_WRITE_ALU;
@@ -247,20 +263,22 @@ module core
         begin
             r_alu_result_MEM    <= w_alu_result_MEM_next;
             r_mem_read_data     <= w_mem_read_data_next;
+            r_imm_MEM           <= w_imm_MEM_next;
+            r_pc_p4_MEM         <= w_pc_p4_MEM_next;
             r_rd_MEM            <= w_rd_MEM_next;
             r_reg_write_en_MEM  <= w_reg_write_en_MEM_next;
             r_reg_write_src_MEM <= w_reg_write_src_MEM_next;
         end
     end
 
-    // Instruction field extraction
-    assign w_rd = i_imem_data[11:7];
-    assign w_funct3 = i_imem_data[14:12];
-    assign w_rs1 = i_imem_data[19:15];
-    assign w_rs2 = i_imem_data[24:20];
-    assign w_funct7 = i_imem_data[31:25];
+    // Instruction field extraction (ID)
+    assign w_rd = r_inst_IF[11:7];
+    assign w_funct3 = r_inst_IF[14:12];
+    assign w_rs1 = r_inst_IF[19:15];
+    assign w_rs2 = r_inst_IF[24:20];
+    assign w_funct7 = r_inst_IF[31:25];
 
-    // PC register
+    // PC register (IF)
     always_ff @(posedge i_clk, posedge i_rst)
     begin
         if (i_rst)
@@ -269,28 +287,26 @@ module core
             r_pc <= w_pc_next;
     end
     assign o_imem_addr = r_pc;
-    assign w_pc_p4  = r_pc + 32'h4;
-    assign w_pc_imm = r_pc + w_imm;
 
-    // Next PC logic
+    // Next PC logic (EX)
     always_comb
     begin
-        if (w_jump == `JUMP_JALR)
+        if (r_jump_ID == `JUMP_JALR)
             w_pc_next = {w_alu_result[31:1], 1'b0};
-        else if (w_take_branch || (w_jump == `JUMP_JAL))
-            w_pc_next = w_pc_imm;
+        else if (w_take_branch || (r_jump_ID == `JUMP_JAL))
+            w_pc_next = r_pc_ID + r_imm_ID;
         else
-            w_pc_next = w_pc_p4;
+            w_pc_next = r_pc + 32'h4;
     end
 
-    // Branch taken logic
+    // Branch taken logic (EX)
     always_comb
     begin
         w_take_branch = 1'b0;
-        if (w_branch)
+        if (r_branch_ID)
         begin
             // [ALU Calculation]
-            case (w_funct3)
+            case (r_funct3_ID)
                 `FUNCT3_BEQ: // [rs1 - rs2] == 0
                     w_take_branch = w_alu_result_eqz;
                 `FUNCT3_BNE: // [rs1 - rs2] != 0
@@ -309,37 +325,38 @@ module core
         end
     end
 
-    // ALU input muxes
-    assign w_alu_a = (w_alu_src1 == `ALU_SRC1_PC) ? r_pc : w_rs1_data;
-    assign w_alu_b = (w_alu_src2 == `ALU_SRC2_IMM) ? w_imm : w_rs2_data;
+    // ALU input muxes (EX)
+    assign w_alu_a = (r_alu_src1_ID == `ALU_SRC1_PC) ? r_pc_ID : r_rs1_data_ID;
+    assign w_alu_b = (r_alu_src2_ID == `ALU_SRC2_IMM) ? r_imm_ID : r_rs2_data_ID;
 
-    // rd write data mux
+    // What data to write to rd (WB)
     always_comb
     begin
-        case (w_reg_write_src)
+        case (r_reg_write_src_MEM)
             `REG_RD_WRITE_ALU:
-                w_rd_data = w_alu_result;
+                w_rd_data = r_alu_result_MEM;
             `REG_RD_WRITE_MEM:
-                w_rd_data = i_dmem_read_data;
+                w_rd_data = r_mem_read_data;
             `REG_RD_WRITE_UI:
-                w_rd_data = w_imm;
+                w_rd_data = r_imm_MEM;
             `REG_RD_WRITE_PC_P4:
-                w_rd_data = w_pc_p4;
+                w_rd_data = r_pc_p4_MEM;
             `REG_RD_WRITE_PC_IMM:
-                w_rd_data = w_pc_imm;
+                w_rd_data = r_alu_result_MEM; // AUIPC: ALU computed PC+IMM
             default:
                 w_rd_data = 32'hX;
         endcase
     end
 
-    // Data memory outputs
-    assign o_dmem_addr        = w_alu_result;
-    assign o_dmem_write_data  = w_rs2_data;
-    assign o_dmem_read_en     = w_mem_read_en;
-    assign o_dmem_write_en    = w_mem_write_en;
+    // Data memory outputs (MEM)
+    assign o_dmem_addr        = r_alu_result_EX;
+    assign o_dmem_write_data  = r_rs2_data_EX;
+    assign o_dmem_read_en     = r_mem_read_en_EX;
+    assign o_dmem_write_en    = r_mem_write_en_EX;
 
+    // Core control module (ID)
     core_ctl u_core_ctl (
-        .i_inst          (i_imem_data),
+        .i_inst          (r_inst_IF),
         .o_branch        (w_branch),
         .o_jump          (w_jump),
         .o_mem_read_en   (w_mem_read_en),
@@ -351,30 +368,34 @@ module core
         .o_alu_src2      (w_alu_src2)
     );
 
+    // Immediate generator module (ID)
     imm_gen u_imm_gen (
-        .i_inst (i_imem_data),
+        .i_inst (r_inst_IF),
         .o_imm  (w_imm)
     );
 
+    // Registers module (ID and WB)
     regs u_regs (
         .i_clk         (i_clk),
         .i_rst         (i_rst),
-        .i_rd_write_en (w_reg_write_en),
+        .i_rd_write_en (r_reg_write_en_MEM),
         .i_addr_rs1    (w_rs1),
         .i_addr_rs2    (w_rs2),
-        .i_addr_rd     (w_rd),
+        .i_addr_rd     (r_rd_MEM),
         .i_data_rd     (w_rd_data),
         .o_data_rs1    (w_rs1_data),
         .o_data_rs2    (w_rs2_data)
     );
 
+    // ALU control module (EX)
     alu_ctl u_alu_ctl (
-        .i_aluctl_op (w_aluctl_op),
-        .i_funct3    (w_funct3),
-        .i_funct7    (w_funct7),
+        .i_aluctl_op (r_aluctl_op_ID),
+        .i_funct3    (r_funct3_ID),
+        .i_funct7    (r_funct7_ID),
         .o_alu_op    (w_alu_op)
     );
 
+    // ALU control module (EX)
     alu u_alu (
         .i_alu_op     (w_alu_op),
         .i_a          (w_alu_a),
