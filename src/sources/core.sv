@@ -55,6 +55,204 @@ module core
     // Branch Logic
     logic w_take_branch;
 
+    // ********** Stage register signal declarations **********
+    // Signals from IF stage
+    logic [31:0] r_pc_IF, w_pc_IF_next;
+    logic [31:0] r_inst_IF, w_inst_IF_next;
+
+    // Signals from ID stage
+    logic [31:0] r_pc_ID, w_pc_ID_next;
+    logic [31:0] r_rs1_data_ID, w_rs1_data_ID_next;
+    logic [31:0] r_rs2_data_ID, w_rs2_data_ID_next;
+    logic [4:0] r_rd_ID, w_rd_ID_next;
+    logic [31:0] r_imm_ID, w_imm_ID_next;
+    logic [2:0] r_funct3_ID, w_funct3_ID_next;
+
+    logic [1:0] r_aluctl_op_ID, w_aluctl_op_ID_next;
+    logic r_alu_src1_ID, w_alu_src1_ID_next;
+    logic r_alu_src2_ID, w_alu_src2_ID_next;
+    logic [1:0] r_jump_ID, w_jump_ID_next;
+    logic r_branch_ID, w_branch_ID_next;
+    logic r_mem_read_en_ID, w_mem_read_en_ID_next;
+    logic r_mem_write_en_ID, w_mem_write_en_ID_next;
+    logic r_reg_write_en_ID, w_reg_write_en_ID_next;
+    logic [2:0] r_reg_write_src_ID, w_reg_write_src_ID_next;
+    
+
+    // Signals from EX stage
+    logic [31:0] r_alu_result_EX, w_alu_result_EX_next;
+    logic [31:0] r_rs2_data_EX, w_rs2_data_EX_next;
+    logic [4:0] r_rd_EX, w_rd_EX_next;
+
+    logic [1:0] r_jump_EX, w_jump_EX_next;
+    logic r_branch_EX, w_branch_EX_next;
+    logic r_mem_read_en_EX, w_mem_read_en_EX_next;
+    logic r_mem_write_en_EX, w_mem_write_en_EX_next;
+    logic r_reg_write_en_EX, w_reg_write_en_EX_next;
+    logic [2:0] r_reg_write_src_EX, w_reg_write_src_EX_next;
+
+    // Signals from MEM stage
+    logic [31:0] r_alu_result_MEM, w_alu_result_MEM_next;
+    logic [31:0] r_mem_read_data, w_mem_read_data_next;
+    logic [4:0] r_rd_MEM, w_rd_MEM_next;
+
+    logic r_reg_write_en_MEM, w_reg_write_en_MEM_next;
+    logic [2:0] r_reg_write_src_MEM, w_reg_write_src_MEM_next;
+
+    // ********** Stage register next assignments **********
+    // Signals from IF stage
+    assign w_pc_IF_next = r_pc;
+    assign w_inst_IF_next = i_imem_data;
+
+    // Signals from ID stage
+    assign w_rs1_data_ID_next = w_rs1_data;
+    assign w_rs2_data_ID_next = w_rs2_data;
+
+    assign w_pc_ID_next = r_pc_IF;
+    assign w_rd_ID_next = r_inst_IF[11:7];
+    assign w_funct3_ID_next = r_inst_IF[14:12];
+    assign w_imm_ID_next = w_imm;
+
+    assign w_aluctl_op_ID_next = w_aluctl_op;
+    assign w_alu_src1_ID_next = w_alu_src1;
+    assign w_alu_src2_ID_next = w_alu_src2;
+    assign w_jump_ID_next = w_jump;
+    assign w_branch_ID_next = w_branch;
+    assign w_mem_read_en_ID_next = w_mem_read_en;
+    assign w_mem_write_en_ID_next = w_mem_write_en;
+    assign w_reg_write_en_ID_next = w_reg_write_en;
+    assign w_reg_write_src_ID_next = w_reg_write_src;
+
+    // Signals from EX stage
+
+    assign w_alu_result_EX_next = w_alu_result;
+
+    assign w_rs2_data_EX_next = r_rs2_data_ID;
+    assign w_rd_EX_next = r_rd_ID;
+
+    assign w_jump_EX_next = r_jump_ID;
+    assign w_branch_EX_next = r_branch_ID;
+    assign w_mem_read_en_EX_next = r_mem_read_en_ID;
+    assign w_mem_write_en_EX_next = r_mem_write_en_ID;
+    assign w_reg_write_en_EX_next = r_reg_write_en_ID;
+    assign w_reg_write_src_EX_next = r_reg_write_src_ID;
+
+    // Signals from MEM stage
+    assign w_mem_read_data_next = i_dmem_read_data;
+
+    assign w_alu_result_MEM_next = r_alu_result_EX;
+    assign w_rd_MEM_next = r_rd_EX;
+
+    assign w_reg_write_en_MEM_next  = r_reg_write_en_EX;
+    assign w_reg_write_src_MEM_next = r_reg_write_src_EX;
+
+    // ********** Stage registers **********
+
+    always_ff @(posedge i_clk, posedge i_rst)
+    begin
+        if (i_rst)
+        begin
+            r_pc_IF   <= 32'h0;
+            r_inst_IF <= 32'h0;
+        end
+        else
+        begin
+            r_pc_IF   <= w_pc_IF_next;
+            r_inst_IF <= w_inst_IF_next;
+        end
+    end
+
+    // ID/EX
+    always_ff @(posedge i_clk, posedge i_rst)
+    begin
+        if (i_rst)
+        begin
+            r_pc_ID             <= 32'h0;
+            r_rs1_data_ID       <= 32'h0;
+            r_rs2_data_ID       <= 32'h0;
+            r_rd_ID             <= 5'h0;
+            r_funct3_ID         <= 3'h0;
+            r_imm_ID            <= 32'h0;
+            r_aluctl_op_ID      <= `ALU_CTL_LS;
+            r_alu_src1_ID       <= `ALU_SRC1_RS1;
+            r_alu_src2_ID       <= `ALU_SRC2_RS2;
+            r_jump_ID           <= `JUMP_NONE;
+            r_branch_ID         <= 1'b0;
+            r_mem_read_en_ID    <= 1'b0;
+            r_mem_write_en_ID   <= 1'b0;
+            r_reg_write_en_ID   <= 1'b0;
+            r_reg_write_src_ID  <= `REG_RD_WRITE_ALU;
+        end
+        else
+        begin
+            r_pc_ID             <= w_pc_ID_next;
+            r_rs1_data_ID       <= w_rs1_data_ID_next;
+            r_rs2_data_ID       <= w_rs2_data_ID_next;
+            r_rd_ID             <= w_rd_ID_next;
+            r_funct3_ID         <= w_funct3_ID_next;
+            r_imm_ID            <= w_imm_ID_next;
+            r_aluctl_op_ID      <= w_aluctl_op_ID_next;
+            r_alu_src1_ID       <= w_alu_src1_ID_next;
+            r_alu_src2_ID       <= w_alu_src2_ID_next;
+            r_jump_ID           <= w_jump_ID_next;
+            r_branch_ID         <= w_branch_ID_next;
+            r_mem_read_en_ID    <= w_mem_read_en_ID_next;
+            r_mem_write_en_ID   <= w_mem_write_en_ID_next;
+            r_reg_write_en_ID   <= w_reg_write_en_ID_next;
+            r_reg_write_src_ID  <= w_reg_write_src_ID_next;
+        end
+    end
+
+    // EX/MEM
+    always_ff @(posedge i_clk, posedge i_rst)
+    begin
+        if (i_rst)
+        begin
+            r_alu_result_EX     <= 32'h0;
+            r_rs2_data_EX       <= 32'h0;
+            r_rd_EX             <= 5'h0;
+            r_jump_EX           <= `JUMP_NONE;
+            r_branch_EX         <= 1'b0;
+            r_mem_read_en_EX    <= 1'b0;
+            r_mem_write_en_EX   <= 1'b0;
+            r_reg_write_en_EX   <= 1'b0;
+            r_reg_write_src_EX  <= `REG_RD_WRITE_ALU;
+        end
+        else
+        begin
+            r_alu_result_EX     <= w_alu_result_EX_next;
+            r_rs2_data_EX       <= w_rs2_data_EX_next;
+            r_rd_EX             <= w_rd_EX_next;
+            r_jump_EX           <= w_jump_EX_next;
+            r_branch_EX         <= w_branch_EX_next;
+            r_mem_read_en_EX    <= w_mem_read_en_EX_next;
+            r_mem_write_en_EX   <= w_mem_write_en_EX_next;
+            r_reg_write_en_EX   <= w_reg_write_en_EX_next;
+            r_reg_write_src_EX  <= w_reg_write_src_EX_next;
+        end
+    end
+
+    // MEM/WB
+    always_ff @(posedge i_clk, posedge i_rst)
+    begin
+        if (i_rst)
+        begin
+            r_alu_result_MEM    <= 32'h0;
+            r_mem_read_data     <= 32'h0;
+            r_rd_MEM            <= 5'h0;
+            r_reg_write_en_MEM  <= 1'b0;
+            r_reg_write_src_MEM <= `REG_RD_WRITE_ALU;
+        end
+        else
+        begin
+            r_alu_result_MEM    <= w_alu_result_MEM_next;
+            r_mem_read_data     <= w_mem_read_data_next;
+            r_rd_MEM            <= w_rd_MEM_next;
+            r_reg_write_en_MEM  <= w_reg_write_en_MEM_next;
+            r_reg_write_src_MEM <= w_reg_write_src_MEM_next;
+        end
+    end
+
     // Instruction field extraction
     assign w_rd = i_imem_data[11:7];
     assign w_funct3 = i_imem_data[14:12];
