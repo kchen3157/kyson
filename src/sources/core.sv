@@ -62,6 +62,8 @@ module core
     logic [31:0] r_pc_ID, w_pc_ID_next;
     logic [31:0] r_rs1_data_ID, w_rs1_data_ID_next;
     logic [31:0] r_rs2_data_ID, w_rs2_data_ID_next;
+    logic [4:0] r_rs1_ID, w_rs1_ID_next;
+    logic [4:0] r_rs2_ID, w_rs2_ID_next;
     logic [4:0] r_rd_ID, w_rd_ID_next;
     logic [31:0] r_imm_ID, w_imm_ID_next;
     logic [2:0] r_funct3_ID, w_funct3_ID_next;
@@ -110,6 +112,8 @@ module core
     // Signals from ID stage
     assign w_rs1_data_ID_next = w_rs1_data;
     assign w_rs2_data_ID_next = w_rs2_data;
+    assign w_rs1_ID = w_rs1;
+    assign w_rs2_ID = w_rs2;
 
     assign w_pc_ID_next = r_pc_IF;
     assign w_rd_ID_next = r_inst_IF[11:7];
@@ -178,6 +182,8 @@ module core
             r_pc_ID             <= 32'h0;
             r_rs1_data_ID       <= 32'h0;
             r_rs2_data_ID       <= 32'h0;
+            r_rs1_ID            <= 5'h0;
+            r_rs2_ID            <= 5'h0;
             r_rd_ID             <= 5'h0;
             r_funct3_ID         <= 3'h0;
             r_funct7_ID         <= 7'h0;
@@ -197,6 +203,8 @@ module core
             r_pc_ID             <= w_pc_ID_next;
             r_rs1_data_ID       <= w_rs1_data_ID_next;
             r_rs2_data_ID       <= w_rs2_data_ID_next;
+            r_rs1_ID            <= w_rs1_ID_next;
+            r_rs2_ID            <= w_rs2_ID_next;
             r_rd_ID             <= w_rd_ID_next;
             r_funct3_ID         <= w_funct3_ID_next;
             r_funct7_ID         <= w_funct7_ID_next;
@@ -355,7 +363,8 @@ module core
     assign o_dmem_write_en    = r_mem_write_en_EX;
 
     // Core control module (ID)
-    core_ctl u_core_ctl (
+    core_ctl u_core_ctl
+    (
         .i_inst          (r_inst_IF),
         .o_branch        (w_branch),
         .o_jump          (w_jump),
@@ -369,13 +378,15 @@ module core
     );
 
     // Immediate generator module (ID)
-    imm_gen u_imm_gen (
+    imm_gen u_imm_gen
+    (
         .i_inst (r_inst_IF),
         .o_imm  (w_imm)
     );
 
     // Registers module (ID and WB)
-    regs u_regs (
+    regs u_regs
+    (
         .i_clk         (i_clk),
         .i_rst         (i_rst),
         .i_rd_write_en (r_reg_write_en_MEM),
@@ -396,12 +407,32 @@ module core
     );
 
     // ALU control module (EX)
-    alu u_alu (
+    alu u_alu
+    (
         .i_alu_op     (w_alu_op),
         .i_a          (w_alu_a),
         .i_b          (w_alu_b),
         .o_result     (w_alu_result),
         .o_result_eqz (w_alu_result_eqz)
+    );
+
+    // Hazard unit module
+    hazard_unit u_hazard_unit
+    (
+        .i_reg_write_en_EX(r_reg_write_en_EX), .i_reg_write_en_MEM(r_reg_write_en_MEM),
+        .i_mem_read_en_ID(r_mem_read_en_ID),
+        .i_take_branch_EX(w_take_branch),
+        .i_rs1_IF(w_rs1),    
+        .i_rs2_IF(w_rs2),    
+        .i_rs1_ID(r_rs1_ID),    
+        .i_rs2_ID(r_rs2_ID),    
+        .i_rd_ID(r_rd_ID),     
+        .i_rd_EX(r_rd_EX),     
+        .i_rd_MEM(r_rd_MEM),    
+        .o_alu_rs1_fw(),
+        .o_alu_rs2_fw(),
+        .o_insert_nop(),      
+        .o_flush()           
     );
 
 endmodule
