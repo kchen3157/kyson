@@ -1,7 +1,7 @@
 `timescale 1 ns/10 ps
 `include "enums.sv"
 
-module hazard_unit
+module hazard_det
     (
         input   logic i_reg_write_en_EX, i_reg_write_en_MEM,
         input   logic i_mem_read_en_ID,

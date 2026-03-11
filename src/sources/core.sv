@@ -439,8 +439,8 @@ module core
         .o_result_eqz (w_alu_result_eqz)
     );
 
-    // Hazard unit module
-    hazard_unit u_hazard_unit
+    // Hazard detection module
+    hazard_det u_hazard_det
     (
         .i_reg_write_en_EX(r_reg_write_en_EX), .i_reg_write_en_MEM(r_reg_write_en_MEM),
         .i_mem_read_en_ID(r_mem_read_en_ID),
