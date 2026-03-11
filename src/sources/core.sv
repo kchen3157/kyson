@@ -53,6 +53,12 @@ module core
     // Branch Logic
     logic w_take_branch;
 
+    // Hazard signals
+    logic [1:0] w_alu_rs1_fw;
+    logic [1:0] w_alu_rs2_fw;
+    logic w_insert_nop;
+    logic w_flush;        
+
     // ********** Stage register signal declarations **********
     // Signals from IF stage
     logic [31:0] r_pc_IF, w_pc_IF_next;
@@ -333,9 +339,26 @@ module core
         end
     end
 
-    // ALU input muxes (EX)
-    assign w_alu_a = (r_alu_src1_ID == `ALU_SRC1_PC) ? r_pc_ID : r_rs1_data_ID;
-    assign w_alu_b = (r_alu_src2_ID == `ALU_SRC2_IMM) ? r_imm_ID : r_rs2_data_ID;
+    // ALU input
+    always_comb
+    begin
+        w_alu_a = r_rs1_data_ID;
+        w_alu_b = r_rs2_data_ID;
+
+        if (r_alu_src1_ID == `ALU_SRC1_PC)
+            w_alu_a = r_pc_ID;
+        else if (w_alu_rs1_fw == `RS1_FORWARD_EX)
+            w_alu_a = r_alu_result_EX;
+        else if (w_alu_rs1_fw == `RS1_FORWARD_MEM)
+            w_alu_a = w_rd_data;
+
+        if (r_alu_src2_ID == `ALU_SRC2_IMM)
+            w_alu_b = r_imm_ID;
+        else if (w_alu_rs2_fw == `RS2_FORWARD_EX)
+            w_alu_b = r_alu_result_EX;
+        else if (w_alu_rs2_fw == `RS2_FORWARD_MEM)
+            w_alu_b = w_rd_data;
+    end
 
     // What data to write to rd (WB)
     always_comb
@@ -429,10 +452,10 @@ module core
         .i_rd_ID(r_rd_ID),     
         .i_rd_EX(r_rd_EX),     
         .i_rd_MEM(r_rd_MEM),    
-        .o_alu_rs1_fw(),
-        .o_alu_rs2_fw(),
-        .o_insert_nop(),      
-        .o_flush()           
+        .o_alu_rs1_fw(w_alu_rs1_fw),
+        .o_alu_rs2_fw(w_alu_rs2_fw),
+        .o_insert_nop(w_insert_nop),      
+        .o_flush(w_flush)           
     );
 
 endmodule
