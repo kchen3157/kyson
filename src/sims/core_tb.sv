@@ -43,7 +43,8 @@ module core_tb;
 
     initial
     begin
-        $readmemh("../../../tests/add.hex", imem);
+        foreach (dmem[i]) dmem[i] = 32'h0;
+        $readmemh("../../../../../tests/add.hex", imem);
 
         i_rst = 1'b1;
         repeat(4) @(posedge i_clk);
