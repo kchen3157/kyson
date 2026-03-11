@@ -113,3 +113,8 @@ utilizationReport.txt
 build/
 waveforms/
 temp_proj_*/
+
+*.o
+*.elf
+*.hex
+*.bin
