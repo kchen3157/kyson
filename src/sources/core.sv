@@ -112,8 +112,8 @@ module core
 
     // ********** Stage register next assignments **********
     // Signals from IF stage
-    assign w_pc_IF_next = r_pc;
-    assign w_inst_IF_next = i_imem_data;
+    assign w_pc_IF_next = (w_insert_nop) ? r_pc_IF : r_pc;
+    assign w_inst_IF_next = (w_insert_nop) ? r_inst_IF : i_imem_data;
 
     // Signals from ID stage
     assign w_rs1_data_ID_next = w_rs1_data;
@@ -183,7 +183,7 @@ module core
     // ID/EX
     always_ff @(posedge i_clk, posedge i_rst)
     begin
-        if (i_rst)
+        if (i_rst | w_insert_nop)
         begin
             r_pc_ID             <= 32'h0;
             r_rs1_data_ID       <= 32'h0;
@@ -305,7 +305,9 @@ module core
     // Next PC logic (EX)
     always_comb
     begin
-        if (r_jump_ID == `JUMP_JALR)
+        if (w_insert_nop)
+            w_pc_next = r_pc;
+        else if (r_jump_ID == `JUMP_JALR)
             w_pc_next = {w_alu_result[31:1], 1'b0};
         else if (w_take_branch || (r_jump_ID == `JUMP_JAL))
             w_pc_next = r_pc_ID + r_imm_ID;
@@ -452,10 +454,10 @@ module core
         .i_rd_ID(r_rd_ID),     
         .i_rd_EX(r_rd_EX),     
         .i_rd_MEM(r_rd_MEM),    
-        .o_alu_rs1_fw(w_alu_rs1_fw),
-        .o_alu_rs2_fw(w_alu_rs2_fw),
-        .o_insert_nop(w_insert_nop),      
-        .o_flush(w_flush)           
+        .o_alu_rs1_fw(w_alu_rs1_fw), // Forward to ALU rs1/operand A
+        .o_alu_rs2_fw(w_alu_rs2_fw), // Forward to ALU rs2/operand B
+        .o_insert_nop(w_insert_nop), // Stall in case of load-use hazard
+        .o_flush(w_flush) // Flush out instructions already in pipeline after branch is taken  
     );
 
 endmodule
