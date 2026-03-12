@@ -112,8 +112,21 @@ module core
 
     // ********** Stage register next assignments **********
     // Signals from IF stage
-    assign w_pc_IF_next = (w_insert_nop) ? r_pc_IF : r_pc;
-    assign w_inst_IF_next = (w_insert_nop) ? r_inst_IF : i_imem_data;
+    always_comb
+    begin
+        w_pc_IF_next = r_pc;
+        w_inst_IF_next = i_imem_data;
+        if (w_flush)
+        begin
+            w_pc_IF_next = 32'h0;
+            w_inst_IF_next = 32'h0;
+        end
+        else if (w_insert_nop)
+        begin
+            w_pc_IF_next = r_pc_IF;
+            w_inst_IF_next = r_inst_IF;
+        end
+    end
 
     // Signals from ID stage
     assign w_rs1_data_ID_next = w_rs1_data;
@@ -183,7 +196,7 @@ module core
     // ID/EX
     always_ff @(posedge i_clk, posedge i_rst)
     begin
-        if (i_rst | w_insert_nop)
+        if (i_rst | w_insert_nop | w_flush)
         begin
             r_pc_ID             <= 32'h0;
             r_rs1_data_ID       <= 32'h0;
