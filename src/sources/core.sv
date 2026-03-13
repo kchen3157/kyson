@@ -58,6 +58,7 @@ module core
     logic [1:0] w_alu_rs2_fw;
     logic w_insert_nop;
     logic w_flush;        
+    logic w_flush_branch;  // flush from hazard unit (branch taken)
 
     // ********** Stage register signal declarations **********
     // Signals from IF stage
@@ -339,15 +340,15 @@ module core
                 `FUNCT3_BEQ: // [rs1 - rs2] == 0
                     w_take_branch = w_alu_result_eqz;
                 `FUNCT3_BNE: // [rs1 - rs2] != 0
-                    w_take_branch = w_alu_result[0];
+                    w_take_branch = ~w_alu_result_eqz;
                 `FUNCT3_BLT: // signed[rs1 < rs2] == 0
-                    w_take_branch = w_alu_result_eqz;
+                    w_take_branch = w_alu_result[0];
                 `FUNCT3_BGE: // signed[rs1 < rs2] != 0
-                    w_take_branch = w_alu_result[0];
+                    w_take_branch = ~w_alu_result[0];
                 `FUNCT3_BLTU: // [rs1 < rs2] == 0
-                    w_take_branch = w_alu_result_eqz;
-                `FUNCT3_BGEU: // [rs1 < rs2] != 0
                     w_take_branch = w_alu_result[0];
+                `FUNCT3_BGEU: // [rs1 < rs2] != 0
+                    w_take_branch = ~w_alu_result[0];
                 default:
                     w_take_branch = 1'b0;
             endcase
@@ -436,6 +437,9 @@ module core
         .o_data_rs2    (w_rs2_data)
     );
 
+    // Flush in cases of branch or jump
+    assign w_flush = w_flush_branch || (r_jump_ID != `JUMP_NONE);
+
     // ALU control module (EX)
     alu_ctl u_alu_ctl (
         .i_aluctl_op (r_aluctl_op_ID),
@@ -470,7 +474,7 @@ module core
         .o_alu_rs1_fw(w_alu_rs1_fw), // Forward to ALU rs1/operand A
         .o_alu_rs2_fw(w_alu_rs2_fw), // Forward to ALU rs2/operand B
         .o_insert_nop(w_insert_nop), // Stall in case of load-use hazard
-        .o_flush(w_flush) // Flush out instructions already in pipeline after branch is taken  
+        .o_flush(w_flush_branch) // Flush out instructions already in pipeline after branch is taken
     );
 
 endmodule
