@@ -61,6 +61,7 @@ module core_ctl
                 o_reg_write_en = 1'b1;
                 o_reg_write_src = `REG_RD_WRITE_PC_IMM;
                 o_alu_src1 = `ALU_SRC1_PC;
+                o_alu_src2 = `ALU_SRC2_IMM;
             end
             `OPCODE_STORE: 
             begin
@@ -101,15 +102,7 @@ module core_ctl
             end
             default:
             begin
-                o_branch = 1'bX;
-                o_jump = 2'bX;
-                o_mem_read_en = 1'bX;
-                o_reg_write_src = 3'bX;
-                o_aluctl_op = 2'bX;
-                o_mem_write_en = 1'bX;
-                o_alu_src1 = 1'bX;
-                o_alu_src2 = 1'bX;
-                o_reg_write_en = 1'bX;
+                
             end
         endcase
     end
