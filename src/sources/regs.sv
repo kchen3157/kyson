@@ -23,7 +23,15 @@ module regs
         end
     end
 
-    assign o_data_rs1 = (i_addr_rs1 == 5'h0) ? 32'h0 : r_regs[i_addr_rs1];
-    assign o_data_rs2 = (i_addr_rs2 == 5'h0) ? 32'h0 : r_regs[i_addr_rs2];
+    // Ternary explanation:
+    // Zero register directly tied to zero
+    // Bypass and directly pipe the input rd to rs1/2 for the pipeline functionality
+    // Regular operation
+    assign o_data_rs1 = (i_addr_rs1 == 5'h0) ? 32'h0 :
+                        (i_rd_write_en && (i_addr_rd == i_addr_rs1)) ? i_data_rd :
+                        r_regs[i_addr_rs1];
+    assign o_data_rs2 = (i_addr_rs2 == 5'h0) ? 32'h0 :
+                        (i_rd_write_en && (i_addr_rd == i_addr_rs2)) ? i_data_rd :
+                        r_regs[i_addr_rs2];
 
 endmodule
