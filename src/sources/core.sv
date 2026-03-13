@@ -135,8 +135,8 @@ module core
     // Signals from ID stage
     assign w_rs1_data_ID_next = w_rs1_data;
     assign w_rs2_data_ID_next = w_rs2_data;
-    assign w_rs1_ID = w_rs1;
-    assign w_rs2_ID = w_rs2;
+    assign w_rs1_ID_next = w_rs1;
+    assign w_rs2_ID_next = w_rs2;
 
     assign w_pc_ID_next = r_pc_IF;
     assign w_rd_ID_next = r_inst_IF[11:7];
