@@ -93,6 +93,7 @@ module core
     logic [31:0] r_imm_EX, w_imm_EX_next;
     logic [31:0] r_pc_p4_EX, w_pc_p4_EX_next;
     logic [4:0] r_rd_EX, w_rd_EX_next;
+    logic [2:0] r_funct3_EX, w_funct3_EX_next;
 
     logic [1:0] r_jump_EX, w_jump_EX_next;
     logic r_branch_EX, w_branch_EX_next;
@@ -107,6 +108,7 @@ module core
     logic [31:0] r_imm_MEM, w_imm_MEM_next;
     logic [31:0] r_pc_p4_MEM, w_pc_p4_MEM_next;
     logic [4:0] r_rd_MEM, w_rd_MEM_next;
+    logic [2:0] r_funct3_MEM, w_funct3_MEM_next;
 
     logic r_reg_write_en_MEM, w_reg_write_en_MEM_next;
     logic [2:0] r_reg_write_src_MEM, w_reg_write_src_MEM_next;
@@ -159,6 +161,7 @@ module core
     assign w_imm_EX_next = r_imm_ID;
     assign w_pc_p4_EX_next = r_pc_ID + 32'h4;
     assign w_rd_EX_next = r_rd_ID;
+    assign w_funct3_EX_next = r_funct3_ID;
 
     assign w_jump_EX_next = r_jump_ID;
     assign w_branch_EX_next = r_branch_ID;
@@ -174,6 +177,7 @@ module core
     assign w_imm_MEM_next = r_imm_EX;
     assign w_pc_p4_MEM_next = r_pc_p4_EX;
     assign w_rd_MEM_next = r_rd_EX;
+    assign w_funct3_MEM_next = r_funct3_EX;
 
     assign w_reg_write_en_MEM_next  = r_reg_write_en_EX;
     assign w_reg_write_src_MEM_next = r_reg_write_src_EX;
@@ -251,6 +255,7 @@ module core
             r_imm_EX            <= 32'h0;
             r_pc_p4_EX          <= 32'h0;
             r_rd_EX             <= 5'h0;
+            r_funct3_EX         <= 3'h0;
             r_jump_EX           <= `JUMP_NONE;
             r_branch_EX         <= 1'b0;
             r_mem_read_en_EX    <= 1'b0;
@@ -265,6 +270,7 @@ module core
             r_imm_EX            <= w_imm_EX_next;
             r_pc_p4_EX          <= w_pc_p4_EX_next;
             r_rd_EX             <= w_rd_EX_next;
+            r_funct3_EX         <= w_funct3_EX_next;
             r_jump_EX           <= w_jump_EX_next;
             r_branch_EX         <= w_branch_EX_next;
             r_mem_read_en_EX    <= w_mem_read_en_EX_next;
@@ -284,6 +290,7 @@ module core
             r_imm_MEM           <= 32'h0;
             r_pc_p4_MEM         <= 32'h0;
             r_rd_MEM            <= 5'h0;
+            r_funct3_MEM        <= 3'h0;
             r_reg_write_en_MEM  <= 1'b0;
             r_reg_write_src_MEM <= `REG_RD_WRITE_ALU;
         end
@@ -294,6 +301,7 @@ module core
             r_imm_MEM           <= w_imm_MEM_next;
             r_pc_p4_MEM         <= w_pc_p4_MEM_next;
             r_rd_MEM            <= w_rd_MEM_next;
+            r_funct3_MEM        <= w_funct3_MEM_next;
             r_reg_write_en_MEM  <= w_reg_write_en_MEM_next;
             r_reg_write_src_MEM <= w_reg_write_src_MEM_next;
         end
