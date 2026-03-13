@@ -118,3 +118,5 @@ temp_proj_*/
 *.elf
 *.hex
 *.bin
+
+xsim.dir/
