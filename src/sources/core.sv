@@ -425,13 +425,12 @@ module core
             `REG_RD_WRITE_PC_IMM:
                 w_rd_data = r_alu_result_MEM; // AUIPC: ALU computed PC+IMM
             default:
-                w_rd_data = 32'hX;
+                w_rd_data = 32'h0;
         endcase
     end
 
     // Data memory outputs (MEM)
     assign o_dmem_addr        = r_alu_result_EX;
-    assign o_dmem_write_data  = r_rs2_data_EX;
     assign o_dmem_read_en     = r_mem_read_en_EX;
     assign o_dmem_write_en    = r_mem_write_en_EX;
 
