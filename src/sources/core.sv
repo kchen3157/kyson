@@ -54,6 +54,10 @@ module core
     // Branch Logic
     logic w_take_branch;
 
+    // Extra signal to enable forwarding from EX to EX
+    // This is the final signal that is written by the instruction
+    logic [31:0] w_forward_ex_val;
+
     // Hazard signals
     logic [1:0] w_alu_rs1_fw;
     logic [1:0] w_alu_rs2_fw;
@@ -155,10 +159,17 @@ module core
     assign w_reg_write_src_ID_next = w_reg_write_src;
 
     // Signals from EX stage
-
     assign w_alu_result_EX_next = w_alu_result;
 
-    assign w_rs2_data_EX_next = r_rs2_data_ID;
+    // Forwarding for store instructions
+    always_comb
+    begin
+        w_rs2_data_EX_next = r_rs2_data_ID;
+        if (w_alu_rs2_fw == `RS2_FORWARD_EX)
+            w_rs2_data_EX_next = w_forward_ex_val;
+        else if (w_alu_rs2_fw == `RS2_FORWARD_MEM)
+            w_rs2_data_EX_next = w_rd_data;
+    end
     assign w_imm_EX_next = r_imm_ID;
     assign w_pc_p4_EX_next = r_pc_ID + 32'h4;
     assign w_rd_EX_next = r_rd_ID;
@@ -373,17 +384,31 @@ module core
         if (r_alu_src1_ID == `ALU_SRC1_PC)
             w_alu_a = r_pc_ID;
         else if (w_alu_rs1_fw == `RS1_FORWARD_EX)
-            w_alu_a = r_alu_result_EX;
+            w_alu_a = w_forward_ex_val;
         else if (w_alu_rs1_fw == `RS1_FORWARD_MEM)
             w_alu_a = w_rd_data;
 
         if (r_alu_src2_ID == `ALU_SRC2_IMM)
             w_alu_b = r_imm_ID;
         else if (w_alu_rs2_fw == `RS2_FORWARD_EX)
-            w_alu_b = r_alu_result_EX;
+            w_alu_b = w_forward_ex_val;
         else if (w_alu_rs2_fw == `RS2_FORWARD_MEM)
             w_alu_b = w_rd_data;
     end
+
+    // Actual value written by instruction for forwarding EX to EX
+    always_comb
+    begin
+        case (r_reg_write_src_EX)
+            `REG_RD_WRITE_UI:
+                w_forward_ex_val = r_imm_EX;
+            `REG_RD_WRITE_PC_P4:
+                w_forward_ex_val = r_pc_p4_EX;
+            default: // regular instruction
+                w_forward_ex_val = r_alu_result_EX;
+        endcase
+    end
+
 
     // What data to write to rd (WB)
     always_comb
