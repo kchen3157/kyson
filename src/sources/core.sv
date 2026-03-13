@@ -13,6 +13,7 @@ module core
         // data memory
         output  logic [31:0] o_dmem_addr,
         output  logic [31:0] o_dmem_write_data,
+        output  logic [3:0]  o_dmem_byte_en,
         input   logic [31:0] i_dmem_read_data,
         output  logic o_dmem_write_en,
         output  logic o_dmem_read_en
@@ -408,6 +409,28 @@ module core
     assign o_dmem_write_data  = r_rs2_data_EX;
     assign o_dmem_read_en     = r_mem_read_en_EX;
     assign o_dmem_write_en    = r_mem_write_en_EX;
+
+    // Sub-word functionality for stores (MEM)
+    // Writes are still protected by o_dmem_write_en
+    always_comb
+    begin
+        // alu result stores address of store + immediate offset
+        // data then must be shifted left by (byte position) * 2^3 or (2 byte position) * 2^4
+        case (r_funct3_EX)
+            `FUNCT3_SB: begin
+                o_dmem_byte_en   = 4'b0001 << r_alu_result_EX[1:0];
+                o_dmem_write_data = r_rs2_data_EX << {r_alu_result_EX[1:0], 3'b0};
+            end
+            `FUNCT3_SH: begin
+                o_dmem_byte_en   = r_alu_result_EX[1] ? 4'b1100 : 4'b0011;
+                o_dmem_write_data = r_rs2_data_EX << {r_alu_result_EX[1], 4'b0};
+            end
+            default: begin  // FUNCT3_SW
+                o_dmem_byte_en   = 4'b1111;
+                o_dmem_write_data = r_rs2_data_EX;
+            end
+        endcase
+    end
 
     // Core control module (ID)
     core_ctl u_core_ctl
