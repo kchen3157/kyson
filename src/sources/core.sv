@@ -65,6 +65,11 @@ module core
     logic w_flush;        
     logic w_flush_branch;  // flush from hazard unit (branch taken)
 
+    // Intermediate signals for loads and subword loads
+    logic [31:0] w_load_data;
+    logic [7:0] w_load_byte;
+    logic [15:0] w_load_half;
+
     // ********** Stage register signal declarations **********
     // Signals from IF stage
     logic [31:0] r_pc_IF, w_pc_IF_next;
@@ -409,6 +414,28 @@ module core
         endcase
     end
 
+    // For sub-word load instructions
+    always_comb
+    begin
+        // Right align the data
+        w_load_byte = r_mem_read_data >> {r_alu_result_MEM[1:0], 3'b0};
+        w_load_half = r_mem_read_data >> {r_alu_result_MEM[1],   4'b0};
+        
+        // Pack the data correctly into w_load_data, according to size
+        // and signedness
+        case (r_funct3_MEM)
+            `FUNCT3_LB:
+                w_load_data = {{24{w_load_byte[7]}}, w_load_byte};
+            `FUNCT3_LH:
+                w_load_data = {{16{w_load_half[15]}}, w_load_half};
+            `FUNCT3_LBU:
+                w_load_data = {24'h0, w_load_byte};
+            `FUNCT3_LHU:
+                w_load_data = {16'h0, w_load_half};
+            default: // LW, etc.
+                w_load_data = r_mem_read_data;
+        endcase
+    end
 
     // What data to write to rd (WB)
     always_comb
@@ -417,7 +444,7 @@ module core
             `REG_RD_WRITE_ALU:
                 w_rd_data = r_alu_result_MEM;
             `REG_RD_WRITE_MEM:
-                w_rd_data = r_mem_read_data;
+                w_rd_data = w_load_data;
             `REG_RD_WRITE_UI:
                 w_rd_data = r_imm_MEM;
             `REG_RD_WRITE_PC_P4:
